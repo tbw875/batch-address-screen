@@ -14,7 +14,6 @@ api_key = getpass.getpass("Enter your API Key:")
 print("Note: Input file must contain the columns ['user_id','asset','address']")
 
 input_csv = input("Enter path/to/file: ")
-#input_csv = '~/Documents/Projects/batch-address-screen/sample_addresses.csv'
 df = pd.read_csv(input_csv)
 
 output_path = input("Enter path and filename for output: ")
