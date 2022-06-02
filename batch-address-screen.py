@@ -18,8 +18,6 @@ df = pd.read_csv(input_csv)
 
 output_path = input("Enter path and filename for output: ")
 
-# BUILD API CALL
-url = f"https://api.chainalysis.com/api/kyt/v1/users/{user_id}/withdrawaladdresses"
 
 headers = {
   'token': api_key,
@@ -35,6 +33,9 @@ for index, row in tqdm(df.iterrows(), total=df.shape[0]):
     asset = row['asset']
     address = row['address']
 
+    # BUILD API CALL
+    url = f"https://api.chainalysis.com/api/kyt/v1/users/{user}/withdrawaladdresses"
+    print(url)
     # Load parsed inputs into a json object to be used in the payload of the API request
     newPayload = json.dumps([
         {"asset": asset,
