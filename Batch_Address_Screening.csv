@@ -1,0 +1,6 @@
+user_id,address,asset,rating,customAddress,chainalysisIdentification,cluster.name,cluster.category,cluster
+1,0x6acdfba02d390b97ac2b2d42a63e85293bcc160e,ETH,highRisk,,,OFAC SDN Chatex.com 2021-11-08,sanctions,
+2,0x7F19720A857F834887FC9A7bC0a0fBe7Fc7f8102,ETH,highRisk,,,OFAC SDN Secondeye Solution 2021-04-15,sanctions,
+3,0x92193107FB10B3B372AB21cC90b5a4DBd67861d9,ETH,lowRisk,,,Contact Chainalysis 0x9219,stolen funds,
+4,0xe1e8C9fa8F0cB41CcF9b92061b696EC247Fcc449,ETH,highRisk,,,MorphToken.com,high risk exchange,
+5,0xC5Ca16CD564eA101bBF2Dba1346499289F142B07,ETH,unknown,,,,,
