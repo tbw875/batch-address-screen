@@ -2,6 +2,7 @@ import pandas as pd
 import getpass
 import json
 import requests
+from tqdm import tqdm
 
 ##### ENTER YOUR API KEY
 api_key = getpass.getpass("Enter your API Key:")
@@ -30,7 +31,7 @@ headers = {
 # Iterate over each row of the CSV file and call the Address Screening API.
 # https://docs.chainalysis.com/api/address-screening/#register-an-address
 data = []
-for index, row in df.iterrows():
+for index, row in tqdm(df.iterrows(), total=df.shape[0]):
     user = row['user_id']
     asset = row['asset']
     address = row['address']
