@@ -19,7 +19,7 @@ df = pd.read_csv(input_csv)
 output_path = input("Enter path and filename for output: ")
 
 # BUILD API CALL
-url = "https://api.chainalysis.com/api/kyt/v1/users/User875/withdrawaladdresses"
+url = f"https://api.chainalysis.com/api/kyt/v1/users/{user_id}/withdrawaladdresses"
 
 headers = {
   'token': api_key,
