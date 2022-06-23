@@ -28,27 +28,26 @@ headers = {
 # Iterate over each row of the CSV file and call the Address Screening API.
 # https://docs.chainalysis.com/api/address-screening/#register-an-address
 data = []
+print("Registering and evaluating addresses...")
 for index, row in tqdm(df.iterrows(), total=df.shape[0]):
     address = row['address']
 
     # BUILD REGISTRATION API CALL
-    url = "https://api.chainalysis.com/api/risk/v2/entities"
+    regUrl = "https://api.chainalysis.com/api/risk/v2/entities"
 
     # Load parsed inputs into a json object to be used in the payload of the API request
-    newPayload = json.dumps([
-        {"address": address}])
+    newPayload = json.dumps(
+        {"address": address})
 
     # Call registration API. Do nothing with it.
-    requests.request("POST", url, headers=headers, data=newPayload)
-    # response = requests.request("POST", url, headers=headers, data=newPayload)
-    # # API response is a list. .pop() makes it a true JSON
-    # # `data` is now a list of JSON objects
-    # data.append(json.loads(response.text).pop())
+    r = requests.request("POST", regUrl, headers=headers, data=newPayload)
 
     # BUILD FETCH API CALL
-    url = f"https://api.chainalysis.com/api/risk/v2/entities/{address}"
+    fetchUrl = f"https://api.chainalysis.com/api/risk/v2/entities/{address}"
 
-    response = requests.request("GET", url, headers=headers)
+    response = requests.request("GET", fetchUrl, headers=headers)
+
+    # Write output to `data` list
     data.append(json.loads(response.text))
 
 # Insert `data` into a dataframe
