@@ -11,7 +11,7 @@ api_key = getpass.getpass("Enter your API Key:")
 # CSV must have the following columns:
 # ['user_id','asset','address']
 
-print("Note: Input file must contain the columns ['user_id','asset','address']")
+print("Note: Input file must contain the column ['address'] with an optional index")
 
 input_csv = input("Enter path/to/file: ")
 df = pd.read_csv(input_csv)
@@ -29,22 +29,27 @@ headers = {
 # https://docs.chainalysis.com/api/address-screening/#register-an-address
 data = []
 for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-    user = row['user_id']
-    asset = row['asset']
     address = row['address']
 
-    # BUILD API CALL
-    url = f"https://api.chainalysis.com/api/kyt/v1/users/{user}/withdrawaladdresses"
+    # BUILD REGISTRATION API CALL
+    url = "https://api.chainalysis.com/api/risk/v2/entities"
 
     # Load parsed inputs into a json object to be used in the payload of the API request
     newPayload = json.dumps([
-        {"asset": asset,
-        "address": address}])
+        {"address": address}])
 
-    response = requests.request("POST", url, headers=headers, data=newPayload)
-    # API response is a list. .pop() makes it a true JSON
-    # `data` is now a list of JSON objects
-    data.append(json.loads(response.text).pop())
+    # Call registration API. Do nothing with it.
+    requests.request("POST", url, headers=headers, data=newPayload)
+    # response = requests.request("POST", url, headers=headers, data=newPayload)
+    # # API response is a list. .pop() makes it a true JSON
+    # # `data` is now a list of JSON objects
+    # data.append(json.loads(response.text).pop())
+
+    # BUILD FETCH API CALL
+    url = f"https://api.chainalysis.com/api/risk/v2/entities/{address}"
+
+    response = requests.request("GET", url, headers=headers)
+    data.append(json.loads(response.text))
 
 # Insert `data` into a dataframe
 df_out = pd.DataFrame(pd.json_normalize(data))
