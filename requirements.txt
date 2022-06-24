@@ -1,0 +1,5 @@
+pandas
+getpass
+requests
+json
+tqdm
