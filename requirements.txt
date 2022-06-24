@@ -3,3 +3,4 @@ getpass
 requests
 json
 tqdm
+dotenv

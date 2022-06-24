@@ -2,16 +2,20 @@ import pandas as pd
 import getpass
 import json
 import requests
+import os
 from tqdm import tqdm
+from dotenv import load_dotenv
+
+# Loading environmental variables
+# Be sure to update your .env file to include your API Key
+load_dotenv()
 
 ##### ENTER YOUR API KEY
-api_key = getpass.getpass("Enter your API Key:")
+API_KEY = os.getenv("API_KEY")
 
 # READ INPUT CSV
-# CSV must have the following columns:
-# ['user_id','asset','address']
-
-print("Note: Input file must contain the column ['address'] with an optional index")
+# CSV must have a column header of "address"
+print('Note: Input file must contain the column "address"')
 
 input_csv = input("Enter path/to/file: ")
 df = pd.read_csv(input_csv)
@@ -20,7 +24,7 @@ output_path = input("Enter path and filename for output: ")
 
 # Define header JSON to be used in each API call.
 headers = {
-  'token': api_key,
+  'token': API_KEY,
   'Content-Type': 'application/json'
 }
 
