@@ -23,9 +23,14 @@ Once you have the above Prerequisites, simply run the python script in your comm
 
        python batch-address-screen.py
 
+You will need to edit the .env.example file:
+
+- Edit with your API key
+- Change filename to `.env`
+- Optional: Create a `.gitignore` file with `.env` included so you don't push your API key.
+
 The script will ask you to input:
 
-- API key to be used for the API calls
 - path-to-file for the input file (e.g. `~/Documents/folder/addresses.csv`)
 - path and filename for an output (e.g. `~/Documents/folder/results.csv`)
 
