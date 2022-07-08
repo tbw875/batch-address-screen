@@ -57,9 +57,6 @@ for index, row in tqdm(df.iterrows(), total=df.shape[0]):
 # Insert `data` into a dataframe
 df_out = pd.DataFrame(pd.json_normalize(data))
 
-# Pre-emptively remove `asset` column from input file. Redundant.
-df.drop("asset",axis=1,inplace=True)
-
 # Merge input dataframe with user ID with output dataframe from API
 df = df.merge(df_out,how="outer",on="address")
 

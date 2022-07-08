@@ -44,6 +44,7 @@ Or submit an issue or pull request -- that would be much better!
 
 Please feel free to submit a PR if you want to work on these!
 
-- .env file for API key storage
+- <s>.env file for API key storage</s>
 - Standardized input/output file so you don't have to manually type path/to/file
-- Handle additional features of the API.
+- Handle parsing of Chainalysis Identifications dict.
+- Handle additional features of the API that are coming soon...
