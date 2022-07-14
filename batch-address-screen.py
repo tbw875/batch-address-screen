@@ -55,7 +55,16 @@ for index, row in tqdm(df.iterrows(), total=df.shape[0]):
     data.append(json.loads(response.text))
 
 # Insert `data` into a dataframe
-df_out = pd.DataFrame(pd.json_normalize(data))
+df_out = pd.DataFrame(
+  pd.json_normalize(
+    data,
+    # meta flattens the json including the dictionary of cluster into different columns
+    meta=['address','risk',['cluster','name'],['cluster','category']],
+    # record path flattens the list of json objects within addressIdentifications
+    # @notice: If there are more than one addressIdentifications for one address, pandas will return multiple rows for one address.
+    record_path='addressIdentifications',
+    # prefix is required because addressIdentifications has the same keynames as the cluster object (name and category)
+    record_prefix='addressIdentification_'))
 
 # Merge input dataframe with user ID with output dataframe from API
 df = df.merge(df_out,how="outer",on="address")
