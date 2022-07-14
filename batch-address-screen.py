@@ -64,10 +64,11 @@ df_out = pd.DataFrame(
     # @notice: If there are more than one addressIdentifications for one address, pandas will return multiple rows for one address.
     record_path='addressIdentifications',
     # prefix is required because addressIdentifications has the same keynames as the cluster object (name and category)
-    record_prefix='addressIdentification_'))
+    record_prefix='addressIdentification_',
+    errors='ignore'))
 
 # Merge input dataframe with user ID with output dataframe from API
-df = df.merge(df_out,how="outer",on="address")
+df = df.merge(df_out,how="right",on="address")
 
 # Write to disk.
 print(f"Finished! Writing to {output_path}")
