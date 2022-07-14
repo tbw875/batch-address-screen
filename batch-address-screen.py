@@ -54,6 +54,12 @@ for index, row in tqdm(df.iterrows(), total=df.shape[0]):
     # Write output to `data` list
     data.append(json.loads(response.text))
 
+# In order to correctly flatten the JSON, we need to alter the JSON for those responses where `addressIdentifications` is an empty list. We simply add an empty dict.
+# more info: https://stackoverflow.com/questions/63813378/how-to-json-normalize-a-column-in-pandas-with-empty-lists-without-losing-record/63876897#63876897
+for i, d in enumerate(data):
+    if not d['addressIdentifications']:
+        data[i]['addressIdentifications'] = [{}]
+
 # Insert `data` into a dataframe
 df_out = pd.DataFrame(
   pd.json_normalize(
@@ -68,7 +74,7 @@ df_out = pd.DataFrame(
     errors='ignore'))
 
 # Merge input dataframe with user ID with output dataframe from API
-df = df.merge(df_out,how="right",on="address")
+df = df.merge(df_out,how="outer",on="address")
 
 # Write to disk.
 print(f"Finished! Writing to {output_path}")
