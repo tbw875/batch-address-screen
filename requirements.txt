@@ -3,4 +3,4 @@ getpass
 requests
 json
 tqdm
-dotenv
+python-dotenv
