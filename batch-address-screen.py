@@ -75,8 +75,6 @@ for i in responses:
     if i is not None:
         data.append(i)
 
-print(data)
-
 logging.info("Empty dicts filled")
 
 # Insert `data` into a dataframe
