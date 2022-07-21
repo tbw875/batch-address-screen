@@ -2,4 +2,4 @@ pandas==1.4.3
 requests
 json
 tqdm
-dotenv
+python-dotenv
