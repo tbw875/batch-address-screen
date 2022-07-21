@@ -1,5 +1,4 @@
-pandas
-getpass
+pandas==1.4.3
 requests
 json
 tqdm
