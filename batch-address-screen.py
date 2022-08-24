@@ -65,15 +65,15 @@ logging.info("All API calls finished.")
 
 # In order to correctly flatten the JSON, we need to alter the JSON for those responses where `addressIdentifications` is an empty list. We simply add an empty dict.
 # more info: https://stackoverflow.com/questions/63813378/how-to-json-normalize-a-column-in-pandas-with-empty-lists-without-losing-record/63876897#63876897
-for i, d in enumerate(responses):
-    if not d["addressIdentifications"]:
-        responses[i]["addressIdentifications"] = [{}]
+# for i, d in enumerate(responses):
+#    if not d["addressIdentifications"]:
+#        responses[i]["addressIdentifications"] = [{}]
 
 # Dropping type None, which represent errored API responses.
 data = []
-for i in responses:
-    if i is not None:
-        data.append(i)
+# for i in responses:
+#    if i is not None:
+#        data.append(i)
 
 logging.info("Empty dicts filled")
 
@@ -85,9 +85,7 @@ df_out = pd.json_normalize(
     meta=["address", "risk", ["cluster", "name"], ["cluster", "category"]],
     # record path flattens the list of json objects within addressIdentifications
     # @notice: If there are more than one addressIdentifications for one address, pandas will return multiple rows for one address.
-    record_path="addressIdentifications",
-    # prefix is required because addressIdentifications has the same keynames as the cluster object (name and category)
-    record_prefix="addressIdentification_",
+    record_path="exposures",
     errors="ignore",
 )
 
