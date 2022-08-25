@@ -29,8 +29,6 @@ print('Note: Input file must contain the column "address"')
 input_csv = input("Enter path/to/file: ")
 df = pd.read_csv(input_csv)
 
-output_path = input("Enter path and filename for output: ")
-
 # Define header JSON to be used in each API call.
 headers = {"token": API_KEY, "Content-Type": "application/json"}
 
@@ -65,36 +63,138 @@ logging.info("All API calls finished.")
 
 # In order to correctly flatten the JSON, we need to alter the JSON for those responses where `addressIdentifications` is an empty list. We simply add an empty dict.
 # more info: https://stackoverflow.com/questions/63813378/how-to-json-normalize-a-column-in-pandas-with-empty-lists-without-losing-record/63876897#63876897
-# for i, d in enumerate(responses):
-#    if not d["addressIdentifications"]:
-#        responses[i]["addressIdentifications"] = [{}]
+# Flattening
+for i, d in enumerate(responses):
+    if not d["addressIdentifications"]:
+        responses[i]["addressIdentifications"] = [{}]
 
 # Dropping type None, which represent errored API responses.
 data = []
-# for i in responses:
-#    if i is not None:
-#        data.append(i)
+for i in responses:
+    if i is not None:
+        data.append(i)
 
-logging.info("Empty dicts filled")
-
-# Insert `data` into a dataframe
+### BUILDING FLATTENED DATAFRAMES ###
+# Here we insert `data` into 3 different dataframes in order to flatten each array successfully.
+# The three arrays we flatten are [exposures, triggers, addressIdentifications]
+# After they are flattened, we merge them, edit their column names, and print to disk.
 # @notice: There is a bug (#44312) in pandas prior to version 1.4.3 that errors with NoneType at record_path.
-df_out = pd.json_normalize(
+
+exposures = pd.json_normalize(
     data,
-    # meta flattens the json including the dictionary of cluster into different columns
-    meta=["address", "risk", ["cluster", "name"], ["cluster", "category"]],
-    # record path flattens the list of json objects within addressIdentifications
-    # @notice: If there are more than one addressIdentifications for one address, pandas will return multiple rows for one address.
+    meta=[
+        "address",
+        ["exposures"],
+        ["cluster", "name"],
+        ["cluster", "category"],
+        "risk",
+    ],
     record_path="exposures",
     errors="ignore",
 )
 
+triggers = pd.json_normalize(
+    data, meta=["address", ["triggers"]], record_path="triggers"
+)
 
-# Merge input dataframe with user ID with output dataframe from API
-df = df.merge(df_out, how="outer", on="address")
+addressIdentifications = pd.json_normalize(
+    data,
+    meta=["address", ["addressIdentifications"]],
+    record_path="addressIdentifications",
+    record_prefix="addressId_",
+)
+
+
+### Merging the three flattened dataframes to one
+df1 = pd.merge(left=exposures, right=triggers, on=["address", "category"], how="outer")
+details = pd.merge(left=df1, right=addressIdentifications, on="address", how="outer")
+
+# Formatting Details csv
+cols = [
+    "address",
+    "risk",
+    "cluster.name",
+    "cluster.category",
+    "ruleTriggered.risk",
+    "category",
+    "value",
+    "percentage",
+    "message",
+    "addressId_name",
+    "addressId_category",
+    "addressId_description",
+]
+
+details = details[cols]
+
+newCols = [
+    "address",
+    "risk",
+    "cluster.name",
+    "cluster.category",
+    "exposure.rule.riskLevel",
+    "exposure.category",
+    "exposure.value",
+    "exposure.percentage",
+    "exposure.rule.message",
+    "addressId.name",
+    "addressId.category",
+    "addressId.description",
+]
+
+details.columns = newCols
+
+# Writing Summary tables
+summaryCols = ["address", "risk", "cluster.name", "cluster.category"]
+summary = details[summaryCols]
+summary.drop_duplicates(subset="address", inplace=True)
+
+exposures = pd.pivot_table(exposures, index="address", columns=["category"])
+triggers = pd.pivot_table(triggers, index="address", columns=["category"])
+
+tmp_cols = ["address"]
+for i in exposures.columns.tolist():
+    tmp_cols.append(i[1])
+
+exposures = pd.DataFrame(exposures.to_records())
+exposures.columns = tmp_cols
+# Exposures is finished here
+
+tmp_cols = ["address"]
+for i in triggers.columns.tolist():
+    tmp_cols.append(i[1])
+
+triggers = pd.DataFrame(triggers.to_records())
+triggers.columns = tmp_cols
+# Triggers done
+
 
 # Write to disk.
-print(f"Finished! Writing to {output_path}")
-logging.info("Writing to disk.")
-df.to_csv(output_path, encoding="utf8", index=False)
+path = "results"
+# Check whether the specified path exists or not
+isExist = os.path.exists(path)
+
+if not isExist:
+    # Create a new directory because it does not exist
+    os.mkdir(path)
+
+OUTPUT_PATH = "./results/"
+print(
+    f"Finished! Writing Summary, Exposures, Triggers, and Details tables to {OUTPUT_PATH}"
+)
+
+logging.info("Writing to disk at {OUTPUT_PATH}.")
+detailsPath = OUTPUT_PATH + "details.csv"
+details.to_csv(detailsPath, encoding="utf8", index=False)
+
+summaryPath = OUTPUT_PATH + "summary.csv"
+summary.to_csv(summaryPath, encoding="utf8", index=False)
+
+exposuresPath = OUTPUT_PATH + "exposures.csv"
+exposures.to_csv(exposuresPath, encoding="utf8", index=False)
+
+triggersPath = OUTPUT_PATH + "triggers.csv"
+triggers.to_csv(triggersPath, encoding="utf8", index=False)
+
+
 logging.info("Script is finished.")
