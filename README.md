@@ -10,12 +10,13 @@ You must have the following to successfully run the script:
 
 - python 3
 - API Key (Best if you use your own test environment key)
-- Input file with the columns `['user_id','asset','address']`
-- Dependencies (`pip3 install x`)
-  - pandas
-  - getpass
+- Input file with the column `['address']`
+- Dependencies (`pip3 install x` or use the requirements.txt file)
+  - pandas==1.4.3
+  - json
   - requests
   - tqdm
+  - python-dotenv
 
 ### How to Use
 
