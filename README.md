@@ -48,4 +48,5 @@ Please feel free to submit a PR if you want to work on these!
 - <s>.env file for API key storage</s>
 - Standardized input/output file so you don't have to manually type path/to/file
 - <s>Handle parsing of Chainalysis Identifications dict.</s>
-- Handle additional features of the API that are coming soon...
+- <s>Handle additional features of the API that are coming soon...</s>
+- Reorganize with functions so refactoring is easier
