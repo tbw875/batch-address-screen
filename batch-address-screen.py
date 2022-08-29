@@ -20,6 +20,11 @@ logging.basicConfig(
 )
 
 ##### ENTER YOUR API KEY
+env_path = ".env"
+envExists = os.path.exists(env_path)
+if not envExists:
+    print("Create a .env file with API_KEY included")
+    exit()
 API_KEY = os.getenv("API_KEY")
 
 # READ INPUT CSV
@@ -57,7 +62,7 @@ for index, row in tqdm(df.iterrows(), total=df.shape[0]):
     # Write output to `responses` list
     responses.append(json.loads(response.text))
 
-    logging.info("Called address: %s" % address)
+    logging.info("Called address: %s", address)
 
 logging.info("All API calls finished.")
 
@@ -158,6 +163,7 @@ for i in exposures.columns.tolist():
 
 exposures = pd.DataFrame(exposures.to_records())
 exposures.columns = tmp_cols
+exposures.fillna(0, inplace=True)
 # Exposures is finished here
 
 tmp_cols = ["address"]
@@ -168,6 +174,11 @@ triggers = pd.DataFrame(triggers.to_records())
 triggers.columns = tmp_cols
 # Triggers done
 
+# Writing Summary table
+summaryCols = ["address", "risk", "cluster.name", "cluster.category"]
+s1 = details[summaryCols]
+s1.drop_duplicates(subset="address", keep="first", inplace=True)
+summary = pd.merge(s1, exposures, on="address", how="inner")
 
 # Write to disk.
 path = "results"
@@ -179,9 +190,7 @@ if not isExist:
     os.mkdir(path)
 
 OUTPUT_PATH = "./results/"
-print(
-    f"Finished! Writing Summary, Exposures, Triggers, and Details tables to {OUTPUT_PATH}"
-)
+print(f"Finished! Writing SUMMARY and DETAILS tables to {OUTPUT_PATH}")
 
 logging.info("Writing to disk at {OUTPUT_PATH}.")
 detailsPath = OUTPUT_PATH + "details.csv"
@@ -189,12 +198,6 @@ details.to_csv(detailsPath, encoding="utf8", index=False)
 
 summaryPath = OUTPUT_PATH + "summary.csv"
 summary.to_csv(summaryPath, encoding="utf8", index=False)
-
-exposuresPath = OUTPUT_PATH + "exposures.csv"
-exposures.to_csv(exposuresPath, encoding="utf8", index=False)
-
-triggersPath = OUTPUT_PATH + "triggers.csv"
-triggers.to_csv(triggersPath, encoding="utf8", index=False)
 
 
 logging.info("Script is finished.")
