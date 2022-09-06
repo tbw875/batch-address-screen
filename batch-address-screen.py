@@ -15,7 +15,6 @@ logging.basicConfig(
     filename="./progress.log",
     filemode="w",
     format="%(asctime)s %(processName)s-%(levelname)s: %(message)s",
-    encoding="utf8",
     level=logging.INFO,
 )
 
