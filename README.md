@@ -13,7 +13,6 @@ You must have the following to successfully run the script:
 - Input file with the column `['address']`
 - Dependencies (`pip3 install x` or use the requirements.txt file)
   - pandas==1.4.3
-  - json
   - requests
   - tqdm
   - python-dotenv
