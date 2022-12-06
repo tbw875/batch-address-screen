@@ -124,9 +124,9 @@ cols = [
     "value",
     "percentage",
     "message",
-    "addressId_name",
-    "addressId_category",
-    "addressId_description",
+    # "addressId_name",
+    # "addressId_category",
+    # "addressId_description",
 ]
 
 details = details[cols]
@@ -141,9 +141,9 @@ newCols = [
     "exposure.value",
     "exposure.percentage",
     "exposure.rule.message",
-    "addressId.name",
-    "addressId.category",
-    "addressId.description",
+    # "addressId.name",
+    # "addressId.category",
+    # "addressId.description",
 ]
 
 details.columns = newCols
