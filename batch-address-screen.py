@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import argparse
 import pandas as pd
 import requests
 from tqdm import tqdm
@@ -28,10 +29,10 @@ API_KEY = os.getenv("API_KEY")
 
 # READ INPUT CSV
 # CSV must have a column header of "address"
-print('Note: Input file must contain the column "address"')
-
-input_csv = input("Enter path/to/file: ")
-df = pd.read_csv(input_csv)
+parser = argparse.ArgumentParser()
+parser.add_argument('csv_path', help='enter path to CSV file of addresses')
+args = parser.parse_args()
+df = pd.read_csv(args.csv_path)
 
 # Define header JSON to be used in each API call.
 headers = {"token": API_KEY, "Content-Type": "application/json"}
@@ -51,7 +52,7 @@ for index, row in tqdm(df.iterrows(), total=df.shape[0]):
     newPayload = json.dumps({"address": address})
 
     # Call registration API. Do nothing with it.
-    r = requests.request("POST", REGISTER_URL, headers=headers, data=newPayload)
+    r = requests.request("POST", REGISTER_URL, headers=headers, data=newPayload, timeout=60)
 
     # BUILD FETCH API CALL
     FETCH_URL = f"https://api.chainalysis.com/api/risk/v2/entities/{address}"

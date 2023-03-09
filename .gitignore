@@ -1,1 +1,7 @@
 .env
+progress.log
+prototyping.ipynb
+debug.ipynb
+responses.txt
+sample_addresses.csv
+results/
