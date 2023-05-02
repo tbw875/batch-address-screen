@@ -43,4 +43,5 @@ Please feel free to submit a PR if you want to work on these!
 - <s>Standardized input/output file so you don't have to manually type path/to/file</s>
 - <s>Handle parsing of Chainalysis Identifications dict.</s>
 - <s>Handle additional features of the API that are coming soon...</s>
-- Refactor as a set of functions that are called so debugging is easier.
+- <s>Refactor as a set of functions that are called so debugging is easier.</s>
+- Introduce upload interface and Lambda function backend
