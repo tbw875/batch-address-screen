@@ -57,10 +57,29 @@ def get_headers(api_key):
 
 
 def process_addresses(df, headers):
+    """
+    Process a DataFrame of addresses through the Chainalysis API.
+
+    Args:
+        df (pandas.DataFrame): DataFrame containing addresses to process.
+        headers (dict): Headers for API requests.
+
+    Returns:
+        list: List of JSON responses from the API.
+
+    The function iterates over each address in the DataFrame, sends a POST request to register the address,
+    and then sends a GET request to retrieve the response. If there is an error with either request (status code 400 or 500),
+    a warning is logged and the processing continues to the next address.
+
+    The responses from successful requests are stored in a list and returned at the end of the function.
+
+    Note: tqdm is used to provide progress bar functionality during the iteration.
+    """
     print("Processing addresses through API ...")
     responses = []
 
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
+        # note: `index` is necessary for tqdm
         address = row["address"]
 
         register_url = "https://api.chainalysis.com/api/risk/v2/entities"
@@ -111,11 +130,33 @@ def save_raw_json(responses, file_name="results/responses.json"):
         os.makedirs("results")
 
     print("Saving JSON ...")
-    with open(file_name, "w") as f:
+    with open(file_name, "w", encoding="utf-8") as f:
         json.dump(responses, f)
 
 
 def process_responses(responses):
+    """
+    Process the responses from the Chainalysis API.
+
+    Args:
+        responses (list): List of JSON responses from the API.
+
+    Returns:
+        pandas.DataFrame: Processed DataFrame containing the parsed responses.
+
+    The function takes a list of JSON responses and performs the following steps:
+
+    1. Flattens nested dictionaries in the JSON responses.
+    2. Creates a DataFrame from the flattened JSON.
+    3. Creates a dictionary to store exposure values for each address.
+    4. Pivots the exposures DataFrame to have exposure categories as columns.
+    5. Populates the exposure categories in the DataFrame.
+    6. Drops the "exposures" column from the DataFrame.
+    7. Reorders the columns in a specified order.
+    8. Ensures that required columns are always present in the DataFrame.
+
+    The processed DataFrame is then returned as the result of the function.
+    """
     print("Parsing responses ...")
 
     # Helper function to flatten nested dictionaries
@@ -221,7 +262,6 @@ def process_responses(responses):
 
 
 def save_output_csv(merged_df):
-    # TODO: Write function to save csv to disk.
     # Create a new directory if not already exist
     output_dir = "results"
     if not os.path.exists(output_dir):
@@ -240,6 +280,22 @@ def save_output_csv(merged_df):
 
 
 def main():
+    """
+    Main function to execute the batch address screening process.
+
+    The function performs the following steps:
+
+    1. Sets up logging configuration.
+    2. Loads the API key from environment variables.
+    3. Gets the headers for the API request.
+    4. Parses the command line arguments to get the CSV file path.
+    5. Reads the input CSV file into a DataFrame.
+    6. Calls the API to process the addresses and saves the raw JSON responses to disk.
+    7. Processes the API responses to create a DataFrame with parsed data.
+    8. Saves the processed data to an output CSV file.
+
+    The function serves as the entry point to execute the batch address screening process.
+    """
     setup_logging()
 
     api_key = load_environment_variables()
