@@ -140,7 +140,7 @@ class TestScript(unittest.TestCase):
         addresses_df = pd.DataFrame({"address": addresses})
         headers = get_headers(api_key)
 
-        def mock_request(method, url, headers, data=None, timeout=None):
+        def mock_request_400(method, url, headers, data=None, timeout=None):
             mock_response = Mock()
             if method == "POST":
                 mock_response.status_code = 400  # Set the status code for POST requests
@@ -150,12 +150,12 @@ class TestScript(unittest.TestCase):
             return mock_response
 
         # Mock the requests.request function to return a 400 status code for both POST and GET requests
-        with patch("requests.request", side_effect=mock_request):
+        with patch("requests.request", side_effect=mock_request_400):
             result = process_addresses(addresses_df, headers)
             assert not result  # Check for an empty list
 
         # Update the mock_request function to return a 500 status code for both POST and GET requests
-        def mock_request(method, url, headers, data=None, timeout=None):
+        def mock_request_500(method, url, headers, data=None, timeout=None):
             mock_response = Mock()
             if method == "POST":
                 mock_response.status_code = 500  # Set the status code for POST requests
@@ -165,7 +165,7 @@ class TestScript(unittest.TestCase):
             return mock_response
 
         # Mock the requests.request function to return a 500 status code for both POST and GET requests
-        with patch("requests.request", side_effect=mock_request):
+        with patch("requests.request", side_effect=mock_request_500):
             result = process_addresses(addresses_df, headers)
             assert not result  # Check for an empty list
 
