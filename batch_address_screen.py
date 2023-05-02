@@ -65,13 +65,36 @@ def process_addresses(df, headers):
 
         register_url = "https://api.chainalysis.com/api/risk/v2/entities"
         new_payload = json.dumps({"address": address})
-        requests.request(
+        request = requests.request(
             "POST", register_url, headers=headers, data=new_payload, timeout=60
         )
+        if request.status_code in [400, 500]:
+            logging.warning(
+                "Error %s: Something went wrong with the API request (POST) for address %s.",
+                request.status_code,
+                address,
+            )
+
+            print(
+                f"Error {request.status_code}: Something went wrong with the API request (POST) for address {address}."
+            )
+            continue
 
         fetch_url = f"https://api.chainalysis.com/api/risk/v2/entities/{address}"
         response = requests.request("GET", fetch_url, headers=headers, timeout=60)
-        responses.append(json.loads(response.text))
+        if request.status_code in [400, 500]:
+            logging.warning(
+                "Error %s: Something went wrong with the API request (GET) for address %s.",
+                response.status_code,
+                address,
+            )
+
+            print(
+                f"Error {response.status_code}: Something went wrong with the API request (GET) for address {address}."
+            )
+            continue
+        else:
+            responses.append(json.loads(response.text))
 
         logging.info("HTTP Status: %s for address %s", response.status_code, address)
 
@@ -186,6 +209,11 @@ def process_responses(responses):
         "addressIdentifications_category",
         "addressIdentifications_description",
     ] + all_categories
+
+    # Ensure required columns are always present
+    for col in column_order:
+        if col not in df.columns:
+            df[col] = None
 
     df = df[column_order]
 

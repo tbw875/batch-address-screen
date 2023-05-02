@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import Mock, patch
 import pandas as pd
 import os
 from batch_address_screen import (
@@ -6,6 +7,7 @@ from batch_address_screen import (
     read_input_file,
     setup_logging,
     get_headers,
+    process_addresses,
     process_responses,
     save_output_csv,
 )
@@ -111,6 +113,61 @@ class TestScript(unittest.TestCase):
         self.assertTrue(
             os.path.isfile("results/Chainalysis_AddressScreeningAPI_Results.csv")
         )
+
+    def test_no_address_identifications(self):
+        response = [
+            {
+                "address": "0xE0db7340F6eC43Af8cDE15a464e24f062167b9AB",
+                "risk": "Medium",
+                "cluster": None,
+                "riskReason": "> 0% Exposure To Darknet Market",
+                "addressIdentifications": [],
+                "exposures": [
+                    {"category": "darknet market", "value": 51.1791},
+                    {"category": "exchange", "value": 10718.59759},
+                ],
+            }
+        ]
+        result = process_responses(response)
+        assert not result.empty
+        assert result["address"].iloc[0] == "0xE0db7340F6eC43Af8cDE15a464e24f062167b9AB"
+        assert pd.isna(result["addressIdentifications_name"].iloc[0])
+        assert result["exchange"].iloc[0] == 10718.59759
+
+    def test_handle_error_response(self):
+        api_key = "example_key"
+        addresses = ["address1", "address2"]
+        addresses_df = pd.DataFrame({"address": addresses})
+        headers = get_headers(api_key)
+
+        def mock_request(method, url, headers, data=None, timeout=None):
+            mock_response = Mock()
+            if method == "POST":
+                mock_response.status_code = 400  # Set the status code for POST requests
+            elif method == "GET":
+                mock_response.status_code = 400  # Set the status code for GET requests
+            mock_response.json.return_value = {}
+            return mock_response
+
+        # Mock the requests.request function to return a 400 status code for both POST and GET requests
+        with patch("requests.request", side_effect=mock_request):
+            result = process_addresses(addresses_df, headers)
+            assert not result  # Check for an empty list
+
+        # Update the mock_request function to return a 500 status code for both POST and GET requests
+        def mock_request(method, url, headers, data=None, timeout=None):
+            mock_response = Mock()
+            if method == "POST":
+                mock_response.status_code = 500  # Set the status code for POST requests
+            elif method == "GET":
+                mock_response.status_code = 500  # Set the status code for GET requests
+            mock_response.json.return_value = {}
+            return mock_response
+
+        # Mock the requests.request function to return a 500 status code for both POST and GET requests
+        with patch("requests.request", side_effect=mock_request):
+            result = process_addresses(addresses_df, headers)
+            assert not result  # Check for an empty list
 
 
 if __name__ == "__main__":
