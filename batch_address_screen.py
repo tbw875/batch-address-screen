@@ -94,34 +94,39 @@ def save_raw_json(responses, file_name="results/responses.json"):
 
 def process_responses(responses):
     print("Parsing responses ...")
-    # In order to correctly flatten the JSON, we need to alter the JSON for those responses where `addressIdentifications` is an empty list.
-    # We simply add an empty dict.
-    for i, d in enumerate(responses):
-        if not d["addressIdentifications"]:
-            responses[i]["addressIdentifications"] = [{}]
 
-    # Flattening exposures and triggers
-    exposures = pd.json_normalize(
-        responses,
-        meta=["address", "risk", ["cluster", "name"], ["cluster", "category"]],
-        record_path="exposures",
-        errors="ignore",
-    )
+    # Helper function to flatten nested dictionaries
+    def flatten_dict(d, parent_key="", sep="_"):
+        items = []
+        for k, v in d.items():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, dict):
+                items.extend(flatten_dict(v, new_key, sep=sep).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
 
-    address_identifications = pd.json_normalize(
-        responses,
-        meta=[
-            "address",
-            "risk",
-            ["cluster", "name"],
-            ["cluster", "category"],
-            ["addressId", "name"],
-            ["addressId", "category"],
-            ["addressId", "description"],
-        ],
-        record_path="addressIdentifications",
-        errors="ignore",
-    )
+    # Flatten nested dictionaries in the JSON
+    flattened_responses = []
+    for response in responses:
+        if not response["addressIdentifications"]:
+            response["addressIdentifications"] = [{}]
+
+        for address_id in response["addressIdentifications"]:
+            new_response = dict(response)
+            new_response["addressIdentifications"] = address_id
+            flattened_responses.append(flatten_dict(new_response))
+
+    # Create DataFrame from flattened JSON
+    df = pd.DataFrame(flattened_responses)
+
+    # Create a dictionary for exposure values
+    exposure_values = {}
+    for response in responses:
+        exposure_values[response["address"]] = {
+            exposure["category"]: exposure["value"]
+            for exposure in response["exposures"]
+        }
 
     # Pivot the exposures DataFrame
     all_categories = [
@@ -159,35 +164,32 @@ def process_responses(responses):
         "unnamed service",
     ]
 
-    exposures_pivoted = exposures.pivot_table(
-        values="value", index=["address", "risk"], columns="category", fill_value=0
-    ).reset_index()
-    exposures_pivoted.columns.name = None
-
-    # Add missing categories to the DataFrame with all values set to 0
+    # Populate exposure categories
     for category in all_categories:
-        if category not in exposures_pivoted.columns:
-            exposures_pivoted[category] = 0
+        df[category] = df.apply(
+            lambda row: exposure_values[row["address"]][category]
+            if category in exposure_values[row["address"]]
+            else 0,
+            axis=1,
+        )
 
-    # Merge the flattened dataframes
-    merged_df = exposures_pivoted.merge(
-        address_identifications, on=["address", "risk"], how="outer"
-    )
+    # Drop exposures column
+    df = df.drop("exposures", axis=1)
 
     # Reorder columns
     column_order = [
         "address",
         "risk",
-        "cluster.name",
-        "cluster.category",
-        "addressId.name",
-        "addressId.category",
-        "addressId.description",
+        "cluster_name",
+        "cluster_category",
+        "addressIdentifications_name",
+        "addressIdentifications_category",
+        "addressIdentifications_description",
     ] + all_categories
 
-    merged_df = merged_df[column_order]
+    df = df[column_order]
 
-    return merged_df
+    return df
 
 
 def save_output_csv(merged_df):
