@@ -5,3 +5,6 @@ debug.ipynb
 responses.txt
 sample_addresses.csv
 results/
+__pycache__/
+logs/
+results/
